@@ -11,3 +11,5 @@ pom.xml.asc
 .hg/
 .idea
 output
+sync-file-generator.iml
+.DS_Store
