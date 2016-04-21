@@ -39,7 +39,7 @@
 
 (def random-records-tsv (map convert-to-file-format random-records))
 
-(defn create-sync-file [line-count]
+(defn create-sync-file [&[line-count]]
   (with-open [wrtr (io/writer "/Users/Tej/GoogleDrive/code/sync-file-generator/output/sync-file.txt")]
-    (doseq [record (take line-count random-records-tsv)]
+    (doseq [record (take (or line-count 20) random-records-tsv)]
       (.write wrtr record))))
