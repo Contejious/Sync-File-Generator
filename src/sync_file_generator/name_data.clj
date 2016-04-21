@@ -1045,6 +1045,7 @@
    "Assistant Supervisor"
    "Peon"
    "Intern"
+   ""
    ])
 
 (def sites
@@ -1055,6 +1056,7 @@
    "Norcross"
    "London"
    "Remote"
+   ""
    ])
 
 (def depts
@@ -1065,4 +1067,5 @@
    "Accounting"
    "Human Resources"
    "Operations"
+   ""
    ])
