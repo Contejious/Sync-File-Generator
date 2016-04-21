@@ -1,45 +1,55 @@
 (ns sync-file-generator.core
-  (:require [sync-file-generator.name-data :as data]
-            [clojure.java.io :as io]))
+  (:require [sync-file-generator.name-data :as data :refer [rand-element rand-element-weighted]]
+            [clojure.java.io :as io])
+  (:import (java.util UUID)))
 
-(def headers ["CustomID"
-              "First Name"
-              "Last Name"
-              "Title"
-              "Site"
-              "Dept"
-              "Email"
-              "Active"
-              "PolicyTech Active"])
+(def default-columns [:id :first :last :title :site :dept :email :active :policy-tech-active])
 
-(defn rand-element [v]
-  (when (vector? v)
-    (v (rand-int (count v)))))
+(def header-labels
+  {:id "CustomID"
+   :first "First Name"
+   :last "Last Name"
+   :title "Title"
+   :site "Site"
+   :dept "Dept"
+   :email "Email"
+   :active "Active"
+   :policy-tech-active "PolicyTech Active"})
 
 (defn random-record []
   (let [first-name (rand-element data/first-names)
         last-name (rand-element data/last-names)
         email (str first-name "." last-name "@foo.test")]
-    {:id                 (str (java.util.UUID/randomUUID))
+    {:id                 (str (UUID/randomUUID))
      :first              first-name
      :last               last-name
      :title              (rand-element data/titles)
-     :site               (rand-element data/sites)
-     :dept               (rand-element data/depts)
+     :site               (rand-element-weighted data/sites)
+     :dept               (rand-element-weighted data/depts)
      :email              email
      :active             "y"
      :policy-tech-active "y"}))
 
-(defn convert-to-file-format [record]
-  (let [columns [:id :first :last :title :site :dept :email :active :policy-tech-active]
-        values (mapv #(record %) columns)]
-    (str (clojure.string/join "\t" values) "\n")))
+(defn convert-to-tsv [columns record]
+  (let [values (mapv record columns)]
+    (clojure.string/join "\t" values)))
 
 (def random-records (repeatedly random-record))
 
-(def random-records-tsv (map convert-to-file-format random-records))
+(defn flat-file-records [n]
+  (concat [header-labels]
+          (take n random-records)))
 
-(defn create-sync-file [&[line-count]]
-  (with-open [wrtr (io/writer "/Users/Tej/GoogleDrive/code/sync-file-generator/output/sync-file.txt")]
-    (doseq [record (take (or line-count 20) random-records-tsv)]
-      (.write wrtr record))))
+(defn create-sync-file
+  ([file-path]
+   (create-sync-file 20 file-path))
+  ([line-count file-path]
+   (create-sync-file default-columns line-count file-path))
+  ([columns line-count file-path]
+   (let [lines (map (partial convert-to-tsv columns) (flat-file-records line-count))]
+    (with-open [wrtr (io/writer file-path)]
+      (binding [*out* wrtr]
+        (doseq [line lines]
+          (println line)))))))
+
+
