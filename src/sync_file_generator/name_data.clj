@@ -10,8 +10,20 @@
     (v (rand-int (count v)))))
 
 (defn normalize-weights [m]
-  (let [total (reduce + (vals m))]
-    (into {} (map (fn [[k v]] [k (double (/ v total))])) m)))
+  (let [total (->> m
+                   (vals)
+                   (reduce +))
+        normalize (fn [[k v]] [k (double (/ v total))])]
+    (into {} (map normalize m))))
+
+(defn normalize-weights-map [m k]
+  (let [total (->> m
+                   vals
+                   (map k)
+                   (reduce +))
+        normalize (fn [[key valm]] [key (update valm k (fn [weight] (double (/ weight total))))])]
+    (into {} (map normalize m))))
+
 
 (defn rand-element-weighted [m]
   (loop [selection (rand)
@@ -51,11 +63,13 @@
      "Remote"    20}))
 
 (def depts
-  (normalize-weights
-    {"Sales"                 10
-     "Engineering"           20
-     "Customer Satisfaction" 30
-     "Accounting"            10
-     "Human Resources"       10
-     "Operations"            10
-     ""                      10}))
+  (normalize-weights-map
+    {"Sales"                 {:weight 10 :parents #{}}
+     "IT"                    {:weight 10 :parents #{}}
+     "Engineering"           {:weight 20 :parents #{"IT"}}
+     "Customer Satisfaction" {:weight 30 :parents #{"Operations"}}
+     "Accounting"            {:weight 10 :parents #{}}
+     "Human Resources"       {:weight 10 :parents #{}}
+     "Operations"            {:weight 10 :parents #{}}
+     ""                      {:weight 10 :parents #{}}}
+    :weight))
