@@ -23,7 +23,7 @@
     {:id                 (str (UUID/randomUUID))
      :first              first-name
      :last               last-name
-     :title              (rand-element data/titles)
+     :title              (rand-element-weighted data/titles)
      :site               (rand-element-weighted data/sites)
      :dept               (rand-element-weighted data/depts)
      :email              email

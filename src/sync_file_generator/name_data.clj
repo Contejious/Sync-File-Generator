@@ -11,59 +11,49 @@
 
 (defn normalize-weights [m]
   (let [total (->> m
-                   (vals)
-                   (reduce +))
-        normalize (fn [[k v]] [k (double (/ v total))])]
-    (into {} (map normalize m))))
-
-(defn normalize-weights-map [m k]
-  (let [total (->> m
                    vals
-                   (map k)
+                   (map :weight)
                    (reduce +))
-        normalize (fn [[key valm]] [key (update valm k (fn [weight] (double (/ weight total))))])]
-    (into {} (map normalize m))))
+        normalize (fn [weight] (double (/ weight total)))
+        normalize-kv (fn [[key valm]] [key (update valm :weight normalize)])]
+    (into {} (map normalize-kv m))))
 
 
 (defn rand-element-weighted [m]
   (loop [selection (rand)
          kvs (seq m)]
-    (let [[k v] (first kvs)]
-      (if (or (< selection v)
+    (let [[k v] (first kvs)
+          weight (:weight v)]
+      (if (or (< selection weight)
               (empty? (rest kvs)))
         k
-        (recur (- selection v) (rest kvs))))))
+        (recur (- selection weight) (rest kvs))))))
 
 (def first-names (read-resource "CSV_Database_of_First_Names.csv"))
 (def last-names (read-resource "CSV_Database_of_Last_Names.csv"))
 
 (def titles
-  [
-   "CEO"
-   "CTO"
-   "CFO"
-   "CIO"
-   "CSO"
-   "Director"
-   "Supervisor"
-   "Assistant"
-   "Assistant Supervisor"
-   "Peon"
-   "Intern"
-   ""
-   ])
+  (normalize-weights
+    {"Vice President"       {:weight 1}
+     "Director"             {:weight 3}
+     "Assistant Director"   {:weight 5}
+     "Supervisor"           {:weight 15}
+     "Assistant"            {:weight 8}
+     "Assistant Supervisor" {:weight 30}
+     "Peon"                 {:weight 100}
+     "Intern"               {:weight 15}}))
 
 (def sites
   (normalize-weights
-    {"Charlotte" 15
-     "LKO"       30
-     "Rexburg"   10
-     "Norcross"  20
-     "London"    5
-     "Remote"    20}))
+    {"Charlotte" {:weight 15}
+     "LKO"       {:weight 30}
+     "Rexburg"   {:weight 10}
+     "Norcross"  {:weight 20}
+     "London"    {:weight 5}
+     "Remote"    {:weight 20}}))
 
 (def depts
-  (normalize-weights-map
+  (normalize-weights
     {"Sales"                 {:weight 10 :parents #{}}
      "IT"                    {:weight 10 :parents #{}}
      "Engineering"           {:weight 20 :parents #{"IT"}}
@@ -71,5 +61,6 @@
      "Accounting"            {:weight 10 :parents #{}}
      "Human Resources"       {:weight 10 :parents #{}}
      "Operations"            {:weight 10 :parents #{}}
-     ""                      {:weight 10 :parents #{}}}
-    :weight))
+     ""                      {:weight 10 :parents #{}}}))
+
+odd?
