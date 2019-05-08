@@ -29,8 +29,8 @@
         k
         (recur (- selection weight) (rest kvs))))))
 
-(def first-names (read-resource "CSV_Database_of_First_Names.csv"))
-(def last-names (read-resource "CSV_Database_of_Last_Names.csv"))
+(def first-names (read-resource "CSV_Database_of_First_Names.tsv"))
+(def last-names (read-resource "CSV_Database_of_Last_Names.tsv"))
 
 (def titles
   (normalize-weights
